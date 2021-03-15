@@ -1,4 +1,5 @@
 import random
+import math
 
 m = 149  # ограничение проходов или что-то в этом духе из методички Воронова
 
@@ -26,8 +27,40 @@ def Eratosphen(n):
     return P
 
 
+def Euclid(a, b):
+    if b == 0:
+        return a
+    return Euclid(b, a % b)
+
+
 def RabinMiller(n, r):
-    pass
+    b = n - 1
+    k = -1
+
+    beta = {}
+    k += 1
+    beta.add(b % 2)
+    b = math.floor(b / 2)
+    while b > 0:
+        k += 1
+        beta.add(b % 2)
+        b = math.floor(b / 2)
+
+    for j in range(1, r):
+        a = random.randint(2, n - 1)
+        if Euclid(a, n) > 1:
+            return False
+        d = 1
+        for i in range(k, 0, -1):
+            x = d
+            d = (d ** 2) % n
+            if (d == 1) and (x != 1) and (x != n - 1):
+                return False
+            if beta[i] == 1:
+                d = (d * a) % n
+        if d != 1:
+            return False
+    return True
 
 
 def IsPrime(n):
