@@ -94,11 +94,11 @@ def GeneratePrime(nBig):
 
 def ExtendedEuclid(a, b):
     if b == 0:
-        return [a, 1, 0]
+        return a, 1, 0
     d, xx, yy = ExtendedEuclid(b, a % b)
     x = yy
     y = xx - (a / b) * yy
-    return [d, x, y]
+    return int(d), int(x), int(y)
 
 
 def GenerateKeyRSA(nBig, eKey):
