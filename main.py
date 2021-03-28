@@ -1,114 +1,26 @@
 import random
-from random import randint
+import math
+
+m = 810
 
 
-def mod_exp(a, b, n):
-    # Выход из рекурсии при возведении a в степень 0
-    if b == 0:
-        return 1  # Взятие модуля n от a в степень 0
-    # Проверка четности степени
-    if b % 2 == 0:
-        # Получение остатка для a в степень в двое меньше b
-        x = mod_exp(a, b / 2, n)
-        return x * x % n  # Получение остатка для a в степень b
-
-    # Получение остатка для a в степень в двое меньше b
-    x = mod_exp(a, (b - 1) / 2, n)
-    x = x * x % n
-    return a * x % n  # Получение остатка для a в степень b
-
-
-def decrypt_rsa(c, d, p, q, n):
-    d1 = d % (p - 1)  # Получение остатка от деления показателя d на p-1
-    d2 = d % (q - 1)  # Получение остатка от деления показателя d на q-1
-
-    # Использование метода повторного возведения в квадрат для высичления
-    m1 = mod_exp(c, d1, p)  # с^d1 mod p
-    m2 = mod_exp(c, d2, q)  # с^d2 mod q
-
-    # Получение обратного элемента мультипликативной группы вычитов (q^(-1))
-    t, x, y = extended_euclid(q, p)
-    r = x % p
-
-    # Формула китайской теоремы об остатках
-    m = (((m1 - m2) * r) % p) * q + m2
-
-    return m;
-
-
-def isint(s):
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
-
-
-def euclid(a, b):
-    t = 0
-    while b > 0:
-        t = b
-        b = a % b
-        a = t
-    return a
-
-
-def rabin_miller(n, r):
-    b = n - 1
-    k = -1
-    beta = []
-
-    # Получение двоичное записи числа b
-    k = k + 1
-    beta.append(b % 2)
-    b = b // 2
-    while b > 0:
-        k = k + 1
-        beta.append(b % 2)
-        b = b // 2
-
-    # Повторяем метод Рабина-Миллера r раз
-    for j in range(r):
-        a = randint(2, n - 1)  # Получаем случайное основание a
-        # Проверяем взаимную простоту a и n
-        if euclid(a, n) > 1:
-            return False
-        # Возведение числа a в степень n-1
-        # с помощью метода повторного возведения
-        # в квадрат с использованием рекуррентного соотношения
-        # и проверки на нетривиальный корень из 1
-        d = 1
-        for i in range(k, -1, -1):
-            x = d
-            d = d * d % n  # Получение остатка от деления на n
-            # Проверка на нетривиальный корень из 1
-            if d == 1 and x != 1 and x != n - 1:
-                return False
-            # Рекуррентное соотношение
-            if beta[i] == 1:
-                d = d * a % n
-        # Если НОД(a,n) не равен 1     
-        if d != 1:
-            return False  # n - составное
-    return True
-
-
-def eratosphen(n):
-    a = []
+def Eratosphen(n):
+    """Генерирует решето Эратосфена"""
+    A = []
 
     # Получение списка заполненного 1
     for j in range(n + 1):
-        a.append(1)
+        A.append(1)
 
     j = 2
     # Просматриваем все числа меньше n
     while j * j <= n:
         # Если число не вычеркнуто, то оно - простое
-        if a[j] == 1:
+        if A[j] == 1:
             i = j * j
             # Вычеркиваются все числа кратные j
             while i <= n:
-                a[i] = 0
+                A[i] = 0
                 i = i + j
         j = j + 1
 
@@ -116,161 +28,215 @@ def eratosphen(n):
 
     # Получаем список простых чисел
     for j in range(2, n + 1):
-        if a[j] == 1:
+        if A[j] == 1:
             p.append(j)
 
     return p
 
 
-def is_prime(n):
-    p = eratosphen(810)  # Получение первых 150 простых чисел
-    m = len(p)
+def Euclid(a, b):
+    """Алгоритм Евклида для нахождения НОД"""
+    if b == 0:
+        return a
+    return Euclid(b, a % b)
 
-    # Сравнение сгенерированного числа n с первыми 150 простыми числами
-    for i in range(m):
-        # Проверка делится ли число n на одно из первых простых чисел 
-        if n % p[i] == 0:
-            # Если сгенерированное число n является одним
-            # из первых простых чисел,
-            if n == p[i]:
-                return True  # то n - простое
+
+def RabinMiller(n, r):
+    """Тест Рабина-Миллера для проверки простоты числа"""
+    b = n - 1
+    k = -1
+    beta = []
+    k += 1
+
+    beta.append(b % 2)
+    b = math.floor(b % 2)
+
+    while b > 0:
+        k += 1
+        beta.append(b % 2)
+        b = math.floor(b % 2)
+
+    for j in range(r):
+        a = random.randint(2, n - 1)
+        if Euclid(a, n) > 1:
+            return False
+        d = 1
+        for i in range(k, -1, -1):
+            x = d
+            d = (d ** 2) % n
+            if (d == 1) and (x != 1) and (x != n - 1):
+                return False
+            if beta[i] == 1:
+                d = (d * a) % n
+        if d != 1:
+            return False
+    return True
+
+
+def IsPrime(n):
+    """Тест на проверку простоты числа с помощью решета Эратосфена, иначе тест Рабина-Миллера"""
+    P = Eratosphen(m)
+
+    for j in range(len(P)):
+        if (n % P[j]) == 0:
+            if n == P[j]:
+                return True
             else:
-                return False  # иначе n - составное
+                return False
+    r = 50  # Количество повторений теста Рабина-Миллера
+    return RabinMiller(n, r)
 
-    r = 60  # Количество повторение теста Рабина-Миллера
-    return rabin_miller(n, r)
 
-
-def generate_prime(N):
-    m = N // 2  # Генерация случайного числа
-    n = randint(2, m)  # из интервала 2..N/2
-    n = 2 * n - 1  # Получение нечетного случайного числа
-
-    # Пока число не простое, продолжаем генерировать
-    while is_prime(n) != True:
-        m = N // 2  # Генерация случайного числа
-        n = randint(2, m)  # из интервала 2..N/2
-        n = 2 * n - 1  # Получение нечетного случайного числа
+def GeneratePrime(N):
+    """Генерация простого числа"""
+    n = random.randint(2, N // 2)
+    n = 2 * n - 1
+    while not IsPrime(n):
+        n = random.randint(2, N // 2)
+        n = 2 * n - 1
     return n
 
 
-def extended_euclid(a, b):
-    x1 = 0
-    x = 1
-    y1 = 1
-    y = 0
-
-    # Пока делитель не равен 0
-    while b > 0:
-        q = a // b  # находим целую часть от деления a на b
-
-        t = b
-        b = a % b  # находим остаток от деления a на b
-        a = t
-
-        # находим коэффициент x в линейной комбинации a и b
-        t = x1
-        x1 = x - (q * x1)
-        x = t
-
-        # находим коэффициент y в линейной комбинации a и b
-        t = y1
-        y1 = y - (q * y1)
-        y = t
-    return a, x, y
+def ExtendedEuclid(a, b):
+    """Расширенный алгоритм Евклида для нахождения НОД"""
+    if not b:
+        return 1, 0, a
+    y, x, g = ExtendedEuclid(b, a % b)
+    return x, y - (a // b) * x, g
 
 
-def generateKeys_rsa(N, e):
-    p = generate_prime(N)  # Генерация простого числа p
-    q = generate_prime(N)  # Генерация простого числа q
-    f = (p - 1) * (q - 1)  # Вычисление функции Эйлера
-    t, x, y = extended_euclid(e, f)  # Находим НОД(e,f)
+def GenerateKeyRSA(N, e):
+    """Генерация ключей RSA"""
+    p = GeneratePrime(N)  # Генерация простого числа p
+    q = GeneratePrime(N)  # Генерация простого числа q
+    f = (p - 1) * (q - 1)
+    x, y, t = ExtendedEuclid(e, f)
 
     # Генерируем простые числа p и q, пока они равны или НОД(e,f) не равен 1
     while p == q or t > 1:
-        p = generate_prime(N)  # Генерация простого числа p
-        q = generate_prime(N)  # Генерация простого числа q
+        p = GeneratePrime(N)  # Генерация простого числа p
+        q = GeneratePrime(N)  # Генерация простого числа q
         f = (p - 1) * (q - 1)  # Вычисление функции Эйлера
-        t, x, y = extended_euclid(e, f)  # Находим НОД(e,f)
+        x, y, t = ExtendedEuclid(e, f)  # Находим НОД(e,f)
 
     n = p * q  # Вычисление криптомодуля
     d = x % f  # Вычисление числа d
     return d, n, p, q
 
 
-def action_1():
-    print('Введите e (нечетное, от 1 до 65 535)')
-    eKey = input()
-    if isint(eKey):
-        eKey = int(eKey)
-        if eKey < 1 or eKey > 65535 or eKey % 2 == 0:
-            print('Число e введено неверно! Введите нечетное число, от 1 до 65535')
-            action_1()
-        else:
-            N = 2000000000
-            d_key, nKey, p, q = generateKeys_rsa(N, eKey)
-            print('Открытый ключ: ' + str(eKey) + ', ' + str(nKey))
-            print('Закрытый ключ: ' + str(d_key) + ', ' + str(nKey))
-            print('Простое число p: ' + str(p))
-            print('Простое число q ' + str(q))
-    else:
+def ModExp(a, b, n):
+    """Возведение в степень по модулю"""
+    # Выход из рекурсии при возведении a в степень 0
+    if b == 0:
+        return 1  # Взятие модуля n от a в степень 0
+    # Проверка четности степени
+    if b % 2 == 0:
+        # Получение остатка для a в степень в двое меньше b
+        x = ModExp(a, b / 2, n)
+        return x * x % n  # Получение остатка для a в степень b
+
+    # Получение остатка для a в степень в двое меньше b
+    x = ModExp(a, (b - 1) / 2, n)
+    x = x * x % n
+    return a * x % n  # Получение остатка для a в степень b
+
+
+def DecryptRSA(c, d, p, q, n):
+    """Расшифровка шифртекста"""
+    d1 = d % (p - 1)  # Получение остатка от деления показателя d на p-1
+    d2 = d % (q - 1)  # Получение остатка от деления показателя d на q-1
+
+    # Использование метода повторного возведения в квадрат для высичления
+    m1 = ModExp(c, d1, p)  # с^d1 mod p
+    m2 = ModExp(c, d2, q)  # с^d2 mod q
+
+    # Получение обратного элемента мультипликативной группы вычитов (q^(-1))
+    t, x, y = ExtendedEuclid(q, p)
+    r = x % p
+
+    # Формула китайской теоремы об остатках
+    m = (((m1 - m2) * r) % p) * q + m2
+
+    return m
+
+
+def step1():
+    print('Введите e нечетное, от 1 до 65 535')
+
+    try:
+        e = int(input())
+    except ValueError:
         print('Число e введено неверно! Введите нечетное число, от 1 до 65535')
-        action_1()
+        step1()
 
-
-def action_2():
-    print('Введите первую часть открытого ключа (e)')
-    eKey = input()
-    print('Введите вторую часть открытого ключа (n)')
-    nKey = input()
-    print('Введите сообщение, которое хотите зашифровать')
-    message = input()
-    if isint(eKey) and isint(nKey) and isint(message):
-        result = mod_exp(int(message), int(eKey), int(nKey))
-        print('Зашифрованное сообщение')
-        print(str(result))
+    if e < 1 or e > 65535 or e % 2 == 0:
+        print('Число e введено неверно! Введите нечетное число, от 1 до 65535')
+        step1()
     else:
-        print('Введенные данные некорректны')
-        action_2()
+        N = 2000000000
+        d, n, p, q = GenerateKeyRSA(N, e)
+        print('Открытый ключ: ' + str(e) + ', ' + str(n))
+        print('Закрытый ключ: ' + str(d) + ', ' + str(n))
+        print('Простое число p: ' + str(p))
+        print('Простое число q ' + str(q))
 
 
-def action_3():
-    print('Введите первую часть закрытого ключа (d)')
-    d_key = input()
-    print('Введите вторую часть закрытого ключа (n)')
-    nKey = input()
-    print('Введите сообщение, которое хотите расшифровать')
-    message = input()
-    print('Введите простое число p')
-    p = input()
-    print('Введите простое число q')
-    q = input()
-    if isint(d_key) and isint(nKey) and isint(message) and isint(p) and isint(q):
-        result = 0
-        result = decrypt_rsa(int(message), int(d_key), int(p), int(q), int(nKey))
-        print('Расшифрованное сообщение')
-        print(str(result))
-    else:
+def step2():
+    try:
+        print('Введите первую часть открытого ключа (e)')
+        e = int(input())
+        print('Введите вторую часть открытого ключа (n)')
+        n = int(input())
+        print('Введите сообщение, которое хотите зашифровать')
+        message = int(input())
+    except ValueError:
         print('Введенные данные некорректны')
-        action_3()
+        step2()
+
+    result = ModExp(message, e, n)
+    print('Зашифрованное сообщение')
+    print(str(result))
+
+
+def step3():
+    try:
+        print('Введите первую часть закрытого ключа (d)')
+        d = int(input())
+        print('Введите вторую часть закрытого ключа (n)')
+        n = int(input())
+        print('Введите сообщение, которое хотите расшифровать')
+        message = int(input())
+        print('Введите простое число p')
+        p = int(input())
+        print('Введите простое число q')
+        q = int(input())
+    except ValueError:
+        print('Введенные данные некорректны')
+        step3()
+
+    result = DecryptRSA(message, d, p, q, n)
+    print('Расшифрованное сообщение')
+    print(str(result))
 
 
 def start():
-    print('Сгенерировать ключи - 1')
-    print('Зашифровать сообщение - 2')
-    print('Расшифровать сообщение - 3')
-    action = input()
-    if isint(action):
-        if int(action) == 1:
-            action_1()
-        elif int(action) == 2:
-            action_2()
-        elif int(action) == 3:
-            action_3()
-    else:
-        print('Такой команды нет')
-        start()
+    while True:
+        print('Сгенерировать ключи - 1')
+        print('Зашифровать сообщение - 2')
+        print('Расшифровать сообщение - 3')
+        action = int(input())
+        if action == 1:
+            step1()
+        elif action == 2:
+            step2()
+        elif action == 3:
+            step3()
+        elif action == 0:
+            exit()
+        else:
+            print('Такой команды нет')
+            start()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     start()
