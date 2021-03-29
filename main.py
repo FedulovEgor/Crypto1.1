@@ -6,32 +6,13 @@ m = 810
 
 def Eratosphen(n):
     """Генерирует решето Эратосфена"""
-    A = []
-
-    # Получение списка заполненного 1
-    for j in range(n + 1):
-        A.append(1)
-
-    j = 2
-    # Просматриваем все числа меньше n
-    while j * j <= n:
-        # Если число не вычеркнуто, то оно - простое
-        if A[j] == 1:
-            i = j * j
-            # Вычеркиваются все числа кратные j
-            while i <= n:
-                A[i] = 0
-                i = i + j
-        j = j + 1
-
-    p = []
-
-    # Получаем список простых чисел
-    for j in range(2, n + 1):
-        if A[j] == 1:
-            p.append(j)
-
-    return p
+    sieve = list(range(n + 1))
+    sieve[1] = 0  # без этой строки итоговый список будет содержать единицу
+    for i in sieve:
+        if i > 1:
+            for j in range(i + i, len(sieve), i):
+                sieve[j] = 0
+    return sieve
 
 
 def Euclid(a, b):
@@ -46,22 +27,22 @@ def RabinMiller(n, r):
     b = n - 1
     k = -1
     beta = []
-    k += 1
 
+    # k += 1
     beta.append(b % 2)
-    b = math.floor(b % 2)
+    b = math.floor(b / 2)
 
     while b > 0:
-        k += 1
+        # k += 1
         beta.append(b % 2)
-        b = math.floor(b % 2)
+        b = math.floor(b / 2)
 
     for j in range(r):
         a = random.randint(2, n - 1)
         if Euclid(a, n) > 1:
             return False
         d = 1
-        for i in range(k, -1, -1):
+        for i in range(len(beta) - 1, 0, -1):
             x = d
             d = (d ** 2) % n
             if (d == 1) and (x != 1) and (x != n - 1):
@@ -71,28 +52,50 @@ def RabinMiller(n, r):
         if d != 1:
             return False
     return True
+    # if n == 2:
+    #     return True
+    #
+    # if n % 2 == 0:
+    #     return False
+    #
+    # k, s = 0, n - 1
+    # while s % 2 == 0:
+    #     k += 1
+    #     s //= 2
+    # for _ in range(r):
+    #     a = random.randrange(2, n - 1)
+    #     x = pow(a, s, n)
+    #     if x == 1 or x == n - 1:
+    #         continue
+    #     for _ in range(k - 1):
+    #         x = pow(x, 2, n)
+    #         if x == n - 1:
+    #             break
+    #     else:
+    #         return False
+    # return True
 
 
 def IsPrime(n):
     """Тест на проверку простоты числа с помощью решета Эратосфена, иначе тест Рабина-Миллера"""
-    P = Eratosphen(m)
-
-    for j in range(len(P)):
-        if (n % P[j]) == 0:
-            if n == P[j]:
-                return True
-            else:
-                return False
-    r = 50  # Количество повторений теста Рабина-Миллера
+    # P = Eratosphen(m)
+    #
+    # for j in range(len(P)):
+    #     if (n % P[j]) == 0:
+    #         if n == P[j]:
+    #             return True
+    #         else:
+    #             return False
+    r = 150  # Количество повторений теста Рабина-Миллера
     return RabinMiller(n, r)
 
 
 def GeneratePrime(N):
     """Генерация простого числа"""
-    n = random.randint(2, N // 2)
+    n = random.randint(2, math.floor(N / 2))
     n = 2 * n - 1
     while not IsPrime(n):
-        n = random.randint(2, N // 2)
+        n = random.randint(2, math.floor(N / 2))
         n = 2 * n - 1
     return n
 
@@ -102,26 +105,28 @@ def ExtendedEuclid(a, b):
     if not b:
         return 1, 0, a
     y, x, g = ExtendedEuclid(b, a % b)
-    return x, y - (a // b) * x, g
+    return x, y - math.floor(a / b) * x, g
 
 
-def GenerateKeyRSA(N, e):
+def GenerateKeyRSA(N):
     """Генерация ключей RSA"""
-    p = GeneratePrime(N)  # Генерация простого числа p
-    q = GeneratePrime(N)  # Генерация простого числа q
+    p = GeneratePrime(N)
+    q = GeneratePrime(N)
+    while p == q:
+        p = GeneratePrime(N)
+        q = GeneratePrime(N)
     f = (p - 1) * (q - 1)
+    e = 1
+
+    e = e + 2
     x, y, t = ExtendedEuclid(e, f)
+    while t > 1:
+        e = e + 2
+        x, y, t = ExtendedEuclid(e, f)
 
-    # Генерируем простые числа p и q, пока они равны или НОД(e,f) не равен 1
-    while p == q or t > 1:
-        p = GeneratePrime(N)  # Генерация простого числа p
-        q = GeneratePrime(N)  # Генерация простого числа q
-        f = (p - 1) * (q - 1)  # Вычисление функции Эйлера
-        x, y, t = ExtendedEuclid(e, f)  # Находим НОД(e,f)
-
-    n = p * q  # Вычисление криптомодуля
-    d = x % f  # Вычисление числа d
-    return d, n, p, q
+    n = p * q
+    d = x % f
+    return d, n, p, q, e
 
 
 def ModExp(a, b, n):
@@ -151,7 +156,7 @@ def DecryptRSA(c, d, p, q, n):
     m2 = ModExp(c, d2, q)  # с^d2 mod q
 
     # Получение обратного элемента мультипликативной группы вычитов (q^(-1))
-    t, x, y = ExtendedEuclid(q, p)
+    x, y, t = ExtendedEuclid(q, p)
     r = x % p
 
     # Формула китайской теоремы об остатках
@@ -161,24 +166,12 @@ def DecryptRSA(c, d, p, q, n):
 
 
 def step1():
-    print('Введите e нечетное, от 1 до 65 535')
-
-    try:
-        e = int(input())
-    except ValueError:
-        print('Число e введено неверно! Введите нечетное число, от 1 до 65535')
-        step1()
-
-    if e < 1 or e > 65535 or e % 2 == 0:
-        print('Число e введено неверно! Введите нечетное число, от 1 до 65535')
-        step1()
-    else:
-        N = 2000000000
-        d, n, p, q = GenerateKeyRSA(N, e)
-        print('Открытый ключ: ' + str(e) + ', ' + str(n))
-        print('Закрытый ключ: ' + str(d) + ', ' + str(n))
-        print('Простое число p: ' + str(p))
-        print('Простое число q ' + str(q))
+    N = 10**20
+    d, n, p, q, e = GenerateKeyRSA(N)
+    print('Открытый ключ (e, n): ' + str(e) + ', ' + str(n))
+    print('Закрытый ключ (d, n): ' + str(d) + ', ' + str(n))
+    print('Простое число p: ' + str(p))
+    print('Простое число q: ' + str(q))
 
 
 def step2():
