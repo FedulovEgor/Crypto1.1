@@ -25,55 +25,28 @@ def Euclid(a, b):
 def RabinMiller(n, r):
     """Тест Рабина-Миллера для проверки простоты числа"""
     b = n - 1
-    k = -1
-    beta = []
 
-    # k += 1
-    beta.append(b % 2)
+    beta = [b % 2]
     b = math.floor(b / 2)
-
     while b > 0:
-        # k += 1
         beta.append(b % 2)
         b = math.floor(b / 2)
 
-    for j in range(r):
+    for i in range(r):
         a = random.randint(2, n - 1)
         if Euclid(a, n) > 1:
             return False
         d = 1
-        for i in range(len(beta) - 1, 0, -1):
+        for j in range(len(beta) - 1, -1, -1):
             x = d
-            d = (d ** 2) % n
+            d = (d * d) % n
             if (d == 1) and (x != 1) and (x != n - 1):
                 return False
-            if beta[i] == 1:
+            if beta[j] == 1:
                 d = (d * a) % n
         if d != 1:
             return False
     return True
-    # if n == 2:
-    #     return True
-    #
-    # if n % 2 == 0:
-    #     return False
-    #
-    # k, s = 0, n - 1
-    # while s % 2 == 0:
-    #     k += 1
-    #     s //= 2
-    # for _ in range(r):
-    #     a = random.randrange(2, n - 1)
-    #     x = pow(a, s, n)
-    #     if x == 1 or x == n - 1:
-    #         continue
-    #     for _ in range(k - 1):
-    #         x = pow(x, 2, n)
-    #         if x == n - 1:
-    #             break
-    #     else:
-    #         return False
-    # return True
 
 
 def IsPrime(n):
@@ -115,6 +88,7 @@ def GenerateKeyRSA(N):
     while p == q:
         p = GeneratePrime(N)
         q = GeneratePrime(N)
+
     f = (p - 1) * (q - 1)
     e = 1
 
@@ -131,19 +105,18 @@ def GenerateKeyRSA(N):
 
 def ModExp(a, b, n):
     """Возведение в степень по модулю"""
-    # Выход из рекурсии при возведении a в степень 0
-    if b == 0:
-        return 1  # Взятие модуля n от a в степень 0
-    # Проверка четности степени
-    if b % 2 == 0:
-        # Получение остатка для a в степень в двое меньше b
-        x = ModExp(a, b / 2, n)
-        return x * x % n  # Получение остатка для a в степень b
+    beta = [b % 2]
+    b = math.floor(b / 2)
+    while b > 0:
+        beta.append(b % 2)
+        b = math.floor(b / 2)
 
-    # Получение остатка для a в степень в двое меньше b
-    x = ModExp(a, (b - 1) / 2, n)
-    x = x * x % n
-    return a * x % n  # Получение остатка для a в степень b
+    d = 1
+    for i in range(len(beta) - 1, -1, -1):
+        d = (d * d) % n
+        if beta[i] == 1:
+            d = (d * a) % n
+    return d
 
 
 def DecryptRSA(c, d, p, q, n):
@@ -166,7 +139,7 @@ def DecryptRSA(c, d, p, q, n):
 
 
 def step1():
-    N = 10**20
+    N = 10 ** 20
     d, n, p, q, e = GenerateKeyRSA(N)
     print('Открытый ключ (e, n): ' + str(e) + ', ' + str(n))
     print('Закрытый ключ (d, n): ' + str(d) + ', ' + str(n))
