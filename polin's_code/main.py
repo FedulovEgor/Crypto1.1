@@ -2,6 +2,7 @@ import random
 from random import randint
 
 
+# TODO: переписать эту функцию на рекурсивное соотношение из методички Воронова (стр. 33)
 def mod_exp(a, b, n):
     # Выход из рекурсии при возведении a в степень 0
     if b == 0:
@@ -246,8 +247,10 @@ def action_3():
     # q = input()
     if isint(d_key) and isint(n_key) and isint(message):  # and isint(p) and isint(q)
         result = 0
+        # первый вариант - с китайской теоремой об остатках для возведения в степень, работает
         # result = decrypt_rsa(int(message), int(d_key), int(p), int(q), int(n_key))
-        result = mod_exp(int(message), int(d_key), int(n_key))
+        # второй вариант - просто тупое возведение в степень, не работает
+        # result = mod_exp(int(message), int(d_key), int(n_key))
         print('Расшифрованное сообщение')
         print(str(result))
     else:
