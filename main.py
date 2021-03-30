@@ -1,48 +1,37 @@
 import random
 import math
 
-e, d, n = 0, 0, 0
-
 
 def Eratosphen(n):
     """Генерирует решето Эратосфена"""
-    # список заполняется значениями от 0 до n
+    p = 0
     a = []
-    for i in range(n + 1):
-        a.append(i)
 
-    # Вторым элементом является единица,
-    # которую не считают простым числом
-    # забиваем ее нулем.
-    a[1] = 0
+    # Получение списка заполненного 1
+    for j in range(n + 1):
+        a.append(1)
 
-    # начинаем с 3-го элемента
-    i = 2
-    while i <= n:
-        # Если значение ячейки до этого
-        # не было обнулено,
-        # в этой ячейке содержится
-        # простое число.
-        if a[i] != 0:
-            # первое кратное ему
-            # будет в два раза больше
-            j = i + i
-            while j <= n:
-                # это число составное,
-                # поэтому заменяем его нулем
-                a[j] = 0
-                # переходим к следующему числу,
-                # которое кратно i
-                # (оно на i больше)
-                j = j + i
-        i += 1
+    j = 2
+    # Просматриваем все числа меньше n
+    while j * j <= n:
+        # Если число не вычеркнуто, то оно - простое
+        if a[j] == 1:
+            i = j * j
+            # Вычеркиваются все числа кратные j
+            while i <= n:
+                a[i] = 0
+                i = i + j
+        j = j + 1
 
-    # Превращая список во множество,
-    # избавляемся от всех нулей кроме одного.
-    a = set(a)
-    # удаляем ноль
-    a.remove(0)
-    return a
+    m = 0
+    p = []
+
+    # Получаем список простых чисел
+    for j in range(2, n + 1):
+        if a[j] == 1:
+            p.append(j)
+
+    return p
 
 
 def Euclid(a, b):
@@ -55,27 +44,41 @@ def Euclid(a, b):
 def RabinMiller(n, r):
     """Тест Рабина-Миллера для проверки простоты числа"""
     b = n - 1
+    k = -1
+    beta = []
 
-    beta = [b % 2]
-    b = math.floor(b / 2)
+    # Получение двоичной записи числа b
+    k = k + 1
+    beta.append(b % 2)
+    b = b // 2
     while b > 0:
+        k = k + 1
         beta.append(b % 2)
-        b = math.floor(b / 2)
+        b = b // 2
 
-    for i in range(r):
-        a = random.randint(2, n - 1)
+    # Повторяем метод Рабина-Миллера r раз
+    for j in range(r):
+        a = random.randint(2, n - 1)  # Получаем случайное основание a
+        # Проверяем взаимную простоту a и n
         if Euclid(a, n) > 1:
             return False
+        # Возведение числа a в степень n-1
+        # с помощью метода повторного возведения
+        # в квадрат с использованием рекуррентного соотношения
+        # и проверки на нетривиальный корень из 1
         d = 1
-        for j in range(len(beta) - 1, -1, -1):
+        for i in range(k, -1, -1):
             x = d
-            d = (d * d) % n
-            if (d == 1) and (x != 1) and (x != n - 1):
+            d = d * d % n  # Получение остатка от деления на n
+            # Проверка на нетривиальный корень из 1
+            if d == 1 and x != 1 and x != n - 1:
                 return False
-            if beta[j] == 1:
-                d = (d * a) % n
+            # Рекуррентное соотношение
+            if beta[i] == 1:
+                d = d * a % n
+        # Если НОД(a,n) не равен 1
         if d != 1:
-            return False
+            return False  # n - составное
     return True
 
 
@@ -106,9 +109,11 @@ def GeneratePrime(N):
 def ExtendedEuclid(a, b):
     """Расширенный алгоритм Евклида для нахождения НОД"""
     if not b:
-        return 1, 0, a
-    y, x, g = ExtendedEuclid(b, a % b)
-    return x, y - math.floor(a / b) * x, g
+        return a, 1, 0
+    d, xx, yy = ExtendedEuclid(b, a % b)
+    x = yy
+    y = xx - (math.floor(a / b)) * yy
+    return d, x, y
 
 
 def GenerateKeyRSA(N):
@@ -123,10 +128,10 @@ def GenerateKeyRSA(N):
     e = 1
 
     e = e + 2
-    x, y, t = ExtendedEuclid(e, f)
+    t, x, y = ExtendedEuclid(e, f)
     while t > 1:
         e = e + 2
-        x, y, t = ExtendedEuclid(e, f)
+        t, x, y = ExtendedEuclid(e, f)
 
     n = p * q
     d = x % f
@@ -150,20 +155,20 @@ def ModExp(a, b, n):
 
 
 def step1():
-    global e, d, n
-    N = 10 ** 20
+    """Генерация ключей"""
+    N = 2000000
     e, d, n = GenerateKeyRSA(N)
     print('Открытый ключ (e, n): ' + str(e) + ', ' + str(n))
     print('Закрытый ключ (d, n): ' + str(d) + ', ' + str(n))
 
 
 def step2():
-    global e, n
+    """Шифрование сообщения"""
     try:
-        # print('Введите первую часть открытого ключа (e)')
-        # e = int(input())
-        # print('Введите вторую часть открытого ключа (n)')
-        # n = int(input())
+        print('Введите первую часть открытого ключа (e)')
+        e = int(input())
+        print('Введите вторую часть открытого ключа (n)')
+        n = int(input())
         print('Введите сообщение, которое хотите зашифровать')
         message = int(input())
     except ValueError:
@@ -176,12 +181,12 @@ def step2():
 
 
 def step3():
-    global d, n
+    """Дешифрование сообщения"""
     try:
-        # print('Введите первую часть закрытого ключа (d)')
-        # d = int(input())
-        # print('Введите вторую часть закрытого ключа (n)')
-        # n = int(input())
+        print('Введите первую часть закрытого ключа (d)')
+        d = int(input())
+        print('Введите вторую часть закрытого ключа (n)')
+        n = int(input())
         print('Введите сообщение, которое хотите расшифровать')
         message = int(input())
     except ValueError:
@@ -194,6 +199,7 @@ def step3():
 
 
 def start():
+    """Начало работы"""
     while True:
         print('Сгенерировать ключи - 1')
         print('Зашифровать сообщение - 2')
