@@ -1,18 +1,48 @@
 import random
 import math
 
-m = 810
+e, d, n = 0, 0, 0
 
 
 def Eratosphen(n):
     """Генерирует решето Эратосфена"""
-    sieve = list(range(n + 1))
-    sieve[1] = 0  # без этой строки итоговый список будет содержать единицу
-    for i in sieve:
-        if i > 1:
-            for j in range(i + i, len(sieve), i):
-                sieve[j] = 0
-    return sieve
+    # список заполняется значениями от 0 до n
+    a = []
+    for i in range(n + 1):
+        a.append(i)
+
+    # Вторым элементом является единица,
+    # которую не считают простым числом
+    # забиваем ее нулем.
+    a[1] = 0
+
+    # начинаем с 3-го элемента
+    i = 2
+    while i <= n:
+        # Если значение ячейки до этого
+        # не было обнулено,
+        # в этой ячейке содержится
+        # простое число.
+        if a[i] != 0:
+            # первое кратное ему
+            # будет в два раза больше
+            j = i + i
+            while j <= n:
+                # это число составное,
+                # поэтому заменяем его нулем
+                a[j] = 0
+                # переходим к следующему числу,
+                # которое кратно i
+                # (оно на i больше)
+                j = j + i
+        i += 1
+
+    # Превращая список во множество,
+    # избавляемся от всех нулей кроме одного.
+    a = set(a)
+    # удаляем ноль
+    a.remove(0)
+    return a
 
 
 def Euclid(a, b):
@@ -51,15 +81,15 @@ def RabinMiller(n, r):
 
 def IsPrime(n):
     """Тест на проверку простоты числа с помощью решета Эратосфена, иначе тест Рабина-Миллера"""
-    # P = Eratosphen(m)
-    #
-    # for j in range(len(P)):
-    #     if (n % P[j]) == 0:
-    #         if n == P[j]:
-    #             return True
-    #         else:
-    #             return False
-    r = 150  # Количество повторений теста Рабина-Миллера
+    P = Eratosphen(810)
+
+    for el in P:
+        if (n % el) == 0:
+            if n == el:
+                return True
+            else:
+                return False
+    r = 50  # Количество повторений теста Рабина-Миллера
     return RabinMiller(n, r)
 
 
@@ -100,7 +130,7 @@ def GenerateKeyRSA(N):
 
     n = p * q
     d = x % f
-    return d, n, p, q, e
+    return e, d, n
 
 
 def ModExp(a, b, n):
@@ -119,40 +149,21 @@ def ModExp(a, b, n):
     return d
 
 
-def DecryptRSA(c, d, p, q, n):
-    """Расшифровка шифртекста"""
-    d1 = d % (p - 1)  # Получение остатка от деления показателя d на p-1
-    d2 = d % (q - 1)  # Получение остатка от деления показателя d на q-1
-
-    # Использование метода повторного возведения в квадрат для высичления
-    m1 = ModExp(c, d1, p)  # с^d1 mod p
-    m2 = ModExp(c, d2, q)  # с^d2 mod q
-
-    # Получение обратного элемента мультипликативной группы вычитов (q^(-1))
-    x, y, t = ExtendedEuclid(q, p)
-    r = x % p
-
-    # Формула китайской теоремы об остатках
-    m = (((m1 - m2) * r) % p) * q + m2
-
-    return m
-
-
 def step1():
+    global e, d, n
     N = 10 ** 20
-    d, n, p, q, e = GenerateKeyRSA(N)
+    e, d, n = GenerateKeyRSA(N)
     print('Открытый ключ (e, n): ' + str(e) + ', ' + str(n))
     print('Закрытый ключ (d, n): ' + str(d) + ', ' + str(n))
-    print('Простое число p: ' + str(p))
-    print('Простое число q: ' + str(q))
 
 
 def step2():
+    global e, n
     try:
-        print('Введите первую часть открытого ключа (e)')
-        e = int(input())
-        print('Введите вторую часть открытого ключа (n)')
-        n = int(input())
+        # print('Введите первую часть открытого ключа (e)')
+        # e = int(input())
+        # print('Введите вторую часть открытого ключа (n)')
+        # n = int(input())
         print('Введите сообщение, которое хотите зашифровать')
         message = int(input())
     except ValueError:
@@ -165,22 +176,19 @@ def step2():
 
 
 def step3():
+    global d, n
     try:
-        print('Введите первую часть закрытого ключа (d)')
-        d = int(input())
-        print('Введите вторую часть закрытого ключа (n)')
-        n = int(input())
+        # print('Введите первую часть закрытого ключа (d)')
+        # d = int(input())
+        # print('Введите вторую часть закрытого ключа (n)')
+        # n = int(input())
         print('Введите сообщение, которое хотите расшифровать')
         message = int(input())
-        print('Введите простое число p')
-        p = int(input())
-        print('Введите простое число q')
-        q = int(input())
     except ValueError:
         print('Введенные данные некорректны')
         step3()
 
-    result = DecryptRSA(message, d, p, q, n)
+    result = ModExp(message, d, n)
     print('Расшифрованное сообщение')
     print(str(result))
 
