@@ -4,7 +4,6 @@ import math
 
 def Eratosphen(n):
     """Генерирует решето Эратосфена"""
-    p = 0
     a = []
 
     # Получение списка заполненного 1
@@ -23,7 +22,6 @@ def Eratosphen(n):
                 i = i + j
         j = j + 1
 
-    m = 0
     p = []
 
     # Получаем список простых чисел
@@ -44,17 +42,13 @@ def Euclid(a, b):
 def RabinMiller(n, r):
     """Тест Рабина-Миллера для проверки простоты числа"""
     b = n - 1
-    k = -1
-    beta = []
 
     # Получение двоичной записи числа b
-    k = k + 1
-    beta.append(b % 2)
-    b = b // 2
+    beta = [b % 2]
+    b = math.floor(b / 2)
     while b > 0:
-        k = k + 1
         beta.append(b % 2)
-        b = b // 2
+        b = math.floor(b / 2)
 
     # Повторяем метод Рабина-Миллера r раз
     for j in range(r):
@@ -67,7 +61,7 @@ def RabinMiller(n, r):
         # в квадрат с использованием рекуррентного соотношения
         # и проверки на нетривиальный корень из 1
         d = 1
-        for i in range(k, -1, -1):
+        for i in range(len(beta) - 1, -1, -1):
             x = d
             d = d * d % n  # Получение остатка от деления на n
             # Проверка на нетривиальный корень из 1
@@ -86,22 +80,24 @@ def IsPrime(n):
     """Тест на проверку простоты числа с помощью решета Эратосфена, иначе тест Рабина-Миллера"""
     P = Eratosphen(810)
 
+    # TODO: Здесь каким-то макаром всегда False, то есть никогда у нас не получается простое число
     for el in P:
-        if (n % el) == 0:
+        if n % el == 0:
             if n == el:
                 return True
             else:
                 return False
-    r = 50  # Количество повторений теста Рабина-Миллера
+
+    r = 60  # Количество повторений теста Рабина-Миллера
     return RabinMiller(n, r)
 
 
 def GeneratePrime(N):
     """Генерация простого числа"""
-    n = random.randint(2, math.floor(N / 2))
+    n = random.randint(2, N // 2)
     n = 2 * n - 1
     while not IsPrime(n):
-        n = random.randint(2, math.floor(N / 2))
+        n = random.randint(2, N // 2)
         n = 2 * n - 1
     return n
 
@@ -118,6 +114,7 @@ def ExtendedEuclid(a, b):
 
 def GenerateKeyRSA(N):
     """Генерация ключей RSA"""
+    # TODO: Зацикливается уже на p = GeneratePrime(N)
     p = GeneratePrime(N)
     q = GeneratePrime(N)
     while p == q:
@@ -156,7 +153,8 @@ def ModExp(a, b, n):
 
 def step1():
     """Генерация ключей"""
-    N = 2000000
+    # TODO: при большом N прога не абонент
+    N = 109417386415705274218097073220403576120037329454492059909138421314763499842889347847179972578912673324976257528997818337970765372440271467435315933543338974563728164539274563715647292635473920374657489365648392736457483
     e, d, n = GenerateKeyRSA(N)
     print('Открытый ключ (e, n): ' + str(e) + ', ' + str(n))
     print('Закрытый ключ (d, n): ' + str(d) + ', ' + str(n))
