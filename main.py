@@ -41,14 +41,51 @@ def Euclid(a, b):
 
 def RabinMiller(n, r):
     """Тест Рабина-Миллера для проверки простоты числа"""
+    # b = n - 1
+    #
+    # # Получение двоичной записи числа b
+    # beta = [b % 2]
+    # b = math.floor(b / 2)
+    # while b > 0:
+    #     beta.append(b % 2)
+    #     b = math.floor(b / 2)
+    #
+    # # Повторяем метод Рабина-Миллера r раз
+    # for j in range(r):
+    #     a = random.randint(2, n - 1)  # Получаем случайное основание a
+    #     # Проверяем взаимную простоту a и n
+    #     if Euclid(a, n) > 1:
+    #         return False
+    #     # Возведение числа a в степень n-1
+    #     # с помощью метода повторного возведения
+    #     # в квадрат с использованием рекуррентного соотношения
+    #     # и проверки на нетривиальный корень из 1
+    #     d = 1
+    #     for i in range(len(beta) - 1, -1, -1):
+    #         x = d
+    #         d = d * d % n  # Получение остатка от деления на n
+    #         # Проверка на нетривиальный корень из 1
+    #         if d == 1 and x != 1 and x != n - 1:
+    #             return False
+    #         # Рекуррентное соотношение
+    #         if beta[i] == 1:
+    #             d = d * a % n
+    #     # Если НОД(a,n) не равен 1
+    #     if d != 1:
+    #         return False  # n - составное
+    # return True
     b = n - 1
+    k = -1
+    beta = []
 
-    # Получение двоичной записи числа b
-    beta = [b % 2]
-    b = math.floor(b / 2)
+    # Получение двоичное записи числа b
+    k = k + 1
+    beta.append(b % 2)
+    b = b // 2
     while b > 0:
+        k = k + 1
         beta.append(b % 2)
-        b = math.floor(b / 2)
+        b = b // 2
 
     # Повторяем метод Рабина-Миллера r раз
     for j in range(r):
@@ -61,7 +98,7 @@ def RabinMiller(n, r):
         # в квадрат с использованием рекуррентного соотношения
         # и проверки на нетривиальный корень из 1
         d = 1
-        for i in range(len(beta) - 1, -1, -1):
+        for i in range(k, -1, -1):
             x = d
             d = d * d % n  # Получение остатка от деления на n
             # Проверка на нетривиальный корень из 1
@@ -78,15 +115,20 @@ def RabinMiller(n, r):
 
 def IsPrime(n):
     """Тест на проверку простоты числа с помощью решета Эратосфена, иначе тест Рабина-Миллера"""
-    P = Eratosphen(810)
+    p = Eratosphen(810)
 
-    # TODO: Здесь каким-то макаром всегда False, то есть никогда у нас не получается простое число
-    for el in P:
-        if n % el == 0:
-            if n == el:
-                return True
+    m = len(p)
+
+    # Сравнение сгенерированного числа n с первыми 150 простыми числами
+    for i in range(m):
+        # Проверка делится ли число n на одно из первых простых чисел
+        if n % p[i] == 0:
+            # Если сгенерированное число n является одним
+            # из первых простых чисел,
+            if n == p[i]:
+                return True  # то n - простое
             else:
-                return False
+                return False  # иначе n - составное
 
     r = 60  # Количество повторений теста Рабина-Миллера
     return RabinMiller(n, r)
@@ -94,11 +136,21 @@ def IsPrime(n):
 
 def GeneratePrime(N):
     """Генерация простого числа"""
-    n = random.randint(2, N // 2)
-    n = 2 * n - 1
-    while not IsPrime(n):
-        n = random.randint(2, N // 2)
-        n = 2 * n - 1
+    # n = random.randint(2, N // 2)
+    # n = 2 * n - 1
+    # while not IsPrime(n):
+    #     n = random.randint(2, N // 2)
+    #     n = 2 * n - 1
+    # return n
+    m = N // 2  # Генерация случайного числа
+    n = random.randint(2, m)  # из интервала 2..N/2
+    n = 2 * n - 1  # Получение нечетного случайного числа
+
+    # Пока число не простое, продолжаем генерировать
+    while IsPrime(n) != True:
+        m = N // 2  # Генерация случайного числа
+        n = random.randint(2, m)  # из интервала 2..N/2
+        n = 2 * n - 1  # Получение нечетного случайного числа
     return n
 
 
@@ -107,8 +159,8 @@ def ExtendedEuclid(a, b):
     if not b:
         return a, 1, 0
     d, xx, yy = ExtendedEuclid(b, a % b)
-    x = yy
-    y = xx - (math.floor(a / b)) * yy
+    x = int(yy)
+    y = int(xx - a // b * yy)
     return d, x, y
 
 
@@ -138,10 +190,10 @@ def GenerateKeyRSA(N):
 def ModExp(a, b, n):
     """Возведение в степень по модулю"""
     beta = [b % 2]
-    b = math.floor(b / 2)
+    b = b // 2
     while b > 0:
         beta.append(b % 2)
-        b = math.floor(b / 2)
+        b = b // 2
 
     d = 1
     for i in range(len(beta) - 1, -1, -1):
